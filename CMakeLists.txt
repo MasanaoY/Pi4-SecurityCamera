@@ -15,8 +15,8 @@ find_package(OpenSSL REQUIRED)
 # pigpioを見つける
 find_library(PIGPIO_LIBRARY NAMES pigpio REQUIRED)
 
-# httplibの設定
-include_directories(/home/pi/projects/Pi4-SecurityCamera)
+# 自ディレクトリをインクルードファイルに追加　（httplibのため）
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # main.cppから実行ファイルを作成（名前は'main_app')
 add_executable(main_app main.cpp)
