@@ -9,8 +9,10 @@ using namespace cv;
 int main(){
     
     // VideoCaptureオブジェクトの初期化
-    VideoCapture cap(0);
-   
+    // GStreamerパイプライン（libcameraからのデータをopencvが扱える形式に変換するため必要）
+    string pipeline = "libcamerasrc ! video/x-raw, width=640, height=480, framerate=30/1 ! videoconvert ! videoscale ! appsink";
+    VideoCapture cap(pipeline, CAP_GSTREAMER);    
+    
     // カメラが正常にオープンできたか確認
     if(!cap.isOpened()) {
         cerr << "エラー：カメラを開けませんでした。" << endl;
