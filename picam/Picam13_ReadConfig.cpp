@@ -35,7 +35,7 @@ std::map<std::string, std::string> load_config(const std::string& filename) {
 }
 
 int main() {
-    auto config = load_config("/home/pi/projects/line_bot/config.txt");
+    auto config = load_config("../config.txt");
 
     if (config.empty()) {
         std::cerr << "設定ファイルの読み込みに失敗しました。" << std::endl;
