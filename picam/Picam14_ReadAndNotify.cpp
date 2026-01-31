@@ -89,7 +89,7 @@ bool sendTextMessage(const std::string& to_user_id, const std::string& text, con
 int main() {
     
     // ファイルの読み込み
-    auto config = load_config("/home/pi/projects/line_bot/config.txt");
+    auto config = load_config("../config.txt");
 
     if(config.empty()) {
         std::cerr << "設定ファイルの読み込みに失敗しました" << std::endl;
