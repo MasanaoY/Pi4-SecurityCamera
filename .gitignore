@@ -1,9 +1,16 @@
 
+line_photo/*
+!line_photo/.gitkeep
+
+line_video/*
+!line_video/.gitkeep
+
 config.txt
 
-build/
+build/*
+!build/.gitkeep
 
-q_backup/
+
 
 # OSが作る一時ファイル
 .DS_Store
