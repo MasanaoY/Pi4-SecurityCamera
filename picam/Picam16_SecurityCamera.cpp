@@ -181,7 +181,7 @@ void start_web_server(int port, const std::map<std::string, std::string>& config
         }
         // HTTPリクエストのパラメーターから値を取り出して文字列として受け取る
         std::string filename = req.get_param_value("file");
-        std::string image_path = "/home/pi/line_photo/" + filename; 
+        std::string image_path = "../line_photo/" + filename; 
 
         // ファイルをバイナリで読む
         std::ifstream ifs(image_path, std::ios::binary);
@@ -216,7 +216,7 @@ void start_web_server(int port, const std::map<std::string, std::string>& config
         }
         // HTTPリクエストのパラメーターから値を取り出して文字列として受け取る
         std::string filename = req.get_param_value("file");
-        std::string video_path = "/home/pi/line_video/" + filename; 
+        std::string video_path = "../line_video/" + filename; 
 
         std::ifstream ifs(video_path, std::ios::binary);
 
@@ -369,7 +369,7 @@ int main() {
     const int SERVER_PORT = 8080;
 
     // 設定ファイルの読み込み
-    auto config = load_config("/home/pi/projects/line_bot/config.txt");
+    auto config = load_config("../config.txt");
 
     if(config.empty()) {
         std::cerr << "設定ファイルの読み込みに失敗しました" << std::endl;
@@ -383,7 +383,7 @@ int main() {
 
     // 初期設定と検出機のロード
     cv::CascadeClassifier face_detector;
-    std::string cascade_path = "haarcascade_frontalface_default.xml"; 
+    std::string cascade_path = "/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml"; 
      
     if (!face_detector.load(cascade_path)) {
     std::cerr << "顔カスケード分類機を読み込めませんでした" << cascade_path << std::endl;
@@ -391,7 +391,9 @@ int main() {
     }
 
     // カメラの初期化
-    cv::VideoCapture cap(0);
+    std::string pipeline = "libcamerasrc ! video/x-raw, width=800, height=600, framerate=15/1 ! videoconvert ! videoscale ! appsink";
+    cv::VideoCapture cap(pipeline, cv::CAP_GSTREAMER);
+    
     if (!cap.isOpened()) { 
         std::cerr << "カメラを開けませんでした" << std::endl;
         return -1;
@@ -401,7 +403,7 @@ int main() {
     int frame_width = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_WIDTH));
     int frame_height = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
     cv::Size frame_size(frame_width, frame_height);
-    double fps = 30.0; // カメラFPS
+    double fps = 15.0; // カメラFPS
 
     // 状態管理変数
     bool is_recording = false;
@@ -436,7 +438,7 @@ int main() {
             std::string get_time2 = get_timestamp();
 
             // 写真を保存
-            photo_filepath = "/home/pi/line_photo/" + get_time2 + ".jpg";
+            photo_filepath = "../line_photo/" + get_time2 + ".jpg";
             photo_filename = get_time2 + ".jpg";
             if (imwrite(photo_filepath, frame)) {
                 std::cout << "画像を保存しました: " << photo_filepath << std::endl;
@@ -529,7 +531,7 @@ int main() {
                 // 日時を取得
                 std::string get_time = get_timestamp();
 
-                video_filepath = "/home/pi/line_video/" + get_time + ".mp4";
+                video_filepath = "../line_video/" + get_time + ".mp4";
                 video_filename = get_time + ".mp4";
                 writer.open(video_filepath, cv::VideoWriter::fourcc('H', '2', '6', '4'), fps, frame_size);
 
@@ -540,7 +542,7 @@ int main() {
 
 
                 // 写真を保存
-                photo_filepath = "/home/pi/line_photo/" + get_time + ".jpg";
+                photo_filepath = "../line_photo/" + get_time + ".jpg";
                 photo_filename = get_time + ".jpg";
                 if (imwrite(photo_filepath, frame)) {
                     std::cout << "画像を保存しました: " << photo_filepath << std::endl;
