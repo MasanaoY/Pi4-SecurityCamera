@@ -21,7 +21,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 # main.cppから実行ファイルを作成（名前は'main_app')
 add_executable(main_app main.cpp)
 
-# 実行ファイルにOpenCVとOpenSSLのライブラリをリンク
+# 実行ファイルにOpenCVとOpenSSLとpigpioのライブラリをリンク
 target_link_libraries(main_app 
     ${OpenCV_LIBS}
     ${OPENSSL_LIBRARIES}
