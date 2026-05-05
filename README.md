@@ -164,6 +164,46 @@ LINE Messaging APIのWebhookにより、
 
 ---
 
+## ◇ 動作イメージ
+
+### ■ 顔検知時の動作
+
+- 顔を検知すると自動で録画開始
+- 同時にLINEへ画像を送信
+- 顔の最終検知後、5秒で録画を停止
+- 動画URLをLINEへ送信
+
+※顔は隠しています。
+<img width="300" height="550" alt="image" src="https://github.com/user-attachments/assets/53e146e1-812c-4e1c-8a3f-7e6b1366f355" />
+
+---
+
+### ■ LINE操作
+
+- 「！」・・・写真を撮影
+- 「？」・・・監視状態を返信
+- 「監視停止」・・・監視を停止
+- 「監視再開」・・・監視を再開
+- 「プログラム終了」・・・メインプログラムを終了
+
+その他の文字列の場合、LINEコマンドの説明が返信されます。
+
+[動作動画](https://drive.google.com/file/d/1BBzG_szHbPuQdoSehjQq6ycj4AeqUDqQ/view?usp=sharing)
+
+---
+
+### ■ ボタン操作とLED表示
+
+- 緑ボタン：監視の停止/再開
+- 赤ボタン：メインプログラムを終了
+- 青LED：顔検知時に点灯
+- 赤LED：監視中に点灯、終了時に5秒間点滅
+
+[動作動画](https://drive.google.com/file/d/1bfLe2dcWyjpfJEdVI0TzId5PjSbYHyfx/view?usp=sharing)
+
+---
+
+
 ## ◇ デザイン／技術的特長
 
 ### ■ 並行処理の最適化
@@ -258,36 +298,36 @@ GPIOを用いてLEDおよびボタンを制御し、
 ## ◇ 実行方法
 
 ### 動作環境
+本システムは以下の環境で動作確認を行っています。
+※ Raspberry Pi以外の環境では動作未確認です。
+
 - Raspberry Pi 4B
-- Raspberry Pi OS Lite　※Raspberry Pi OS(64-bit)でも動作確認済み
-- C++17対応環境
+- Raspberry Pi OS Lite (64-bit)　※Raspberry Pi OS(64-bit)でも動作確認済み
+- インターネット接続環境（LINE / ngrok使用のため）
+  
 ---
 
 ### 1.リポジトリの取得
-```Bash
+```bash
 git clone https://github.com/MasanaoY/Pi4-SecurityCamera.git
 cd Pi4-SecurityCamera
 ```
 ---
 
 ### 2.ディレクトリ構成
-※念の為、私のディレクトリ構成をそのまま記載します。
+
 ```
-＃piはユーザー名です。自分のユーザー名に置き換えてください。
-　　　　↓↓
-/home/pi/　
-  └- projects/　　　　　　
-       └- Pi4-SecurityCamera/
-       　　　├- delete_old_files.sh　＃古い写真と動画を削除するシェルスクリプト #ユーザーに合わせて絶対パスの更新が必要
-            ├- line_video/　　　　　　＃動画を保存する場所
-            ├- line_photo/　　　　　　＃写真を保存する場所
-            ├- main.cpp　　　　　＃ビルドするメインプログラム
-            ├- config.txt　　　 ＃設定ファイル（チャネルトークン・ユーザーID、ngrok URL）
-            ├- CMakeLists.txt　＃ビルド用設定ファイル
-            ├- httplib.h　　　　＃cpp-httplibのヘッダーファイル
-            ├- picam/　　　　   ＃各機能のcppプログラム置いています
-            ├- nlohmann/　　　　＃nlohmann/jsonを使用するためのファイル
-            └- build/　　　　　　
+.
+├- delete_old_files.sh　＃古いファイルを削除するスクリプト #ユーザーに合わせて絶対パスの更新が必要
+├- line_video/　　　　　　＃動画を保存する場所
+├- line_photo/　　　　　　＃写真を保存する場所
+├- main.cpp　　　　　＃メインプログラム
+├- config.txt　　　 ＃設定ファイル（チャネルトークン・ユーザーID、ngrok URL）
+├- CMakeLists.txt　＃ビルド用設定ファイル
+├- httplib.h　　　　＃cpp-httplibのヘッダーファイル
+├- picam/　　　　   
+├- nlohmann/　　　　＃nlohmann/jsonを使用するためのファイル
+└- build/　　　　　　＃ビルドディレクトリ
 ```
 
 ---
@@ -297,7 +337,7 @@ cd Pi4-SecurityCamera
 本システムを動作させるために、以下の設定が必要です。
 
 ### ■ ngrok の準備
-　　※[こちら](https://qiita.com/Masanao_00/items/1d27bd52a040dd36f89f)が参考になります。
+　　※[こちら](https://qiita.com/Masanao_00/items/1d27bd52a040dd36f89f)が参考になるかもしれません。
 - ngrokアカウントを作成
 - 認証トークンを設定
 
@@ -306,7 +346,7 @@ ngrok config add-authtoken <YOUR_TOKEN>
 ```
 
 ### ■ LINE Messaging API の設定
-　　※[こちら](https://qiita.com/Masanao_00/items/a5592c43eaed5a5baa0f)が参考になります。
+　　※[こちら](https://qiita.com/Masanao_00/items/a5592c43eaed5a5baa0f)が参考になるかもしれません。
 - LINE Developersでチャネルを作成
 - Messaging APIを有効化
 - 以下の情報を取得
@@ -315,46 +355,108 @@ ngrok config add-authtoken <YOUR_TOKEN>
   - ユーザーID
 ---
 
-　※[こちら](https://qiita.com/Masanao_00/items/2d6db1efa6225a9e2191)が参考になります。
+　　※[こちら](https://qiita.com/Masanao_00/items/2d6db1efa6225a9e2191)が参考になるかもしれません。
 - Webhookの利用　有効化
 - Webhook URLに ngrok のURLを設定
 
 ---
 
 ### 4.必要パッケージのインストール
-　※[こちら](https://qiita.com/Masanao_00/items/71934d368d0ad36cbc51)が参考になります。
-```Bash
+　　※[こちら](https://qiita.com/Masanao_00/items/71934d368d0ad36cbc51)が参考になるかもしれません。
+
+```bash
 sudo apt update
 sudo apt install -y build-essential cmake pkg-config git
 sudo apt install libssl-dev
 sudo apt install libopencv-dev python3-opencv
 sudo apt install pigpio
+```
+
+---
+
+### 5. pigpioの設定
+
+本システムは `pigpio` を使用しています。
+
+本プログラムは `sudo` 権限で実行するため、
+pigpioデーモン（pigpiod）を停止してください。
+
+```bash
 sudo systemctl stop pigpiod
+```
+
+---
+
+### 6.顔検出用カスケードファイルのパス確認
+
+- メインプログラム（main.cpp）の386行目`haarcascade_frontalface_default.xml`の絶対パスを適切に変更して下さい。
+
+```main.cpp
+386    std::string cascade_path = "/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml";
+```
+
+
+Open CV`apt`でインストールした場合、共有ディレクトリに配置されているので、`ls`で確認できます。
+```bash
+ls /usr/share/opencv*/haarcascades/haarcascade_frontalface_default.xml
+```
+
+
+無い場合は、ダウンロードして下さい。
+```bash
+wget https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_frontalface_default.xml
+```
+
+---
+
+### 7.設定ファイルの作成
+
+- smple_config.txt のファイル名を config.txt に変更
+- ファイル内の`=`の右側に **「チャネルのトークン、ユーザーID、ngrok URL」** を追記
+
+```
+- sample_config.txt を config.txt にリネーム
+
+以下を設定：
+
+CHANNEL_ACCESS_TOKEN=xxxx
+USER_ID_TO_SEND=xxxx
+NGROK_URL_BASE=xxxx
 ```
 ---
 
-### 5.設定ファイルの作成
-smple_config.txt のファイル名を config.txt に変更し、ファイル内の`=`の右側に「チャネルのトークン、ユーザーID、ngrok URL」を追記して下さい。
+### 8.ビルド（Make）
+```bash
+cd build
+cmake ..
+make
+```
 
 ---
 
-### 6.
+### 9.実行
+```bash
+ngrok http 8080
+sudo ./main_app
+```
+
+## ◇　トラブルシューティング
+
+
+
+## ◇ 運用方法
 
 
 
 
 
-カスケードファイルダウンロード（通常時は共有ディレクトリにインストール済み）
-ls /usr/share/opencv*/haarcascades/haarcascade_frontalface_default.xml
-
-wget https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_frontalface_default.xml
 
 
 
 
 
 
-　※[こちら]()が参考になります。
 //残り
-実行方法
-動作イメージ
+運用方法
+トラブルシューティング
+
