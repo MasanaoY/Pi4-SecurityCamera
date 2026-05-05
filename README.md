@@ -30,6 +30,14 @@ Raspberry Piを用いて構築した、**リアルタイム監視カメラシス
 - Webサーバー：cpp-httplibを用いたHTTP通信処理
 - LINE連携：Messaging API（Push / Webhook）による通知・遠隔操作
 - GPIO制御：LEDおよびボタンによる状態管理
+- 
+- カメラ入力：Raspberry Pi Camera Moduleから映像取得
+- 顔検知・録画制御：OpenCVによる顔検知および録画制御
+- ファイル保存：画像・動画データの保存
+- Webサーバー：cpp-httplibを用いたHTTP通信処理
+- LINE送信：Messaging API（Push / Webhook）による通知・遠隔操作
+- 状態管理：atomic変数による監視状態の制御
+- GPIO制御：LEDおよびボタンによる入出力制御
 
 ---
 
@@ -249,8 +257,104 @@ GPIOを用いてLEDおよびボタンを制御し、
 
 ## ◇ 実行方法
 
+### 動作環境
+- Raspberry Pi 4B
+- Raspberry Pi OS Lite　※Raspberry Pi OS(64-bit)でも動作確認済み
+- C++17対応環境
+---
+
+### 1.リポジトリの取得
+```Bash
+git clone https://github.com/MasanaoY/Pi4-SecurityCamera.git
+cd Pi4-SecurityCamera
+```
+---
+
+### 2.ディレクトリ構成
+※念の為、私のディレクトリ構成をそのまま記載します。
+```
+＃piはユーザー名です。自分のユーザー名に置き換えてください。
+　　　　↓↓
+/home/pi/　
+  └- projects/　　　　　　
+       └- Pi4-SecurityCamera/
+       　　　├- delete_old_files.sh　＃古い写真と動画を削除するシェルスクリプト #ユーザーに合わせて絶対パスの更新が必要
+            ├- line_video/　　　　　　＃動画を保存する場所
+            ├- line_photo/　　　　　　＃写真を保存する場所
+            ├- main.cpp　　　　　＃ビルドするメインプログラム
+            ├- config.txt　　　 ＃設定ファイル（チャネルトークン・ユーザーID、ngrok URL）
+            ├- CMakeLists.txt　＃ビルド用設定ファイル
+            ├- httplib.h　　　　＃cpp-httplibのヘッダーファイル
+            ├- picam/　　　　   ＃各機能のcppプログラム置いています
+            ├- nlohmann/　　　　＃nlohmann/jsonを使用するためのファイル
+            └- build/　　　　　　
+```
+
+---
+
+### 3.事前準備（LINE/ngrok）
+
+本システムを動作させるために、以下の設定が必要です。
+
+### ■ ngrok の準備
+　　※[こちら](https://qiita.com/Masanao_00/items/1d27bd52a040dd36f89f)が参考になります。
+- ngrokアカウントを作成
+- 認証トークンを設定
+
+```bash
+ngrok config add-authtoken <YOUR_TOKEN>
+```
+
+### ■ LINE Messaging API の設定
+　　※[こちら](https://qiita.com/Masanao_00/items/a5592c43eaed5a5baa0f)が参考になります。
+- LINE Developersでチャネルを作成
+- Messaging APIを有効化
+- 以下の情報を取得
+
+  - Channel Access Token
+  - ユーザーID
+---
+
+　※[こちら](https://qiita.com/Masanao_00/items/2d6db1efa6225a9e2191)が参考になります。
+- Webhookの利用　有効化
+- Webhook URLに ngrok のURLを設定
+
+---
+
+### 4.必要パッケージのインストール
+　※[こちら](https://qiita.com/Masanao_00/items/71934d368d0ad36cbc51)が参考になります。
+```Bash
+sudo apt update
+sudo apt install -y build-essential cmake pkg-config git
+sudo apt install libssl-dev
+sudo apt install libopencv-dev python3-opencv
+sudo apt install pigpio
+sudo systemctl stop pigpiod
+```
+---
+
+### 5.設定ファイルの作成
+smple_config.txt のファイル名を config.txt に変更し、ファイル内の`=`の右側に「チャネルのトークン、ユーザーID、ngrok URL」を追記して下さい。
+
+---
+
+### 6.
 
 
+
+
+
+カスケードファイルダウンロード（通常時は共有ディレクトリにインストール済み）
+ls /usr/share/opencv*/haarcascades/haarcascade_frontalface_default.xml
+
+wget https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_frontalface_default.xml
+
+
+
+
+
+
+　※[こちら]()が参考になります。
 //残り
 実行方法
 動作イメージ
