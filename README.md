@@ -24,18 +24,12 @@ Raspberry Piを用いて構築した、**リアルタイム監視カメラシス
 
 
 ### ■ コンポーネント構成
-- カメラ入力：Raspberry Pi Camera Moduleから映像取得
-- 画像処理：OpenCVによる顔検知
-- 録画制御：顔検知イベントに応じて動画の開始・停止および保存を管理
-- Webサーバー：cpp-httplibを用いたHTTP通信処理
-- LINE連携：Messaging API（Push / Webhook）による通知・遠隔操作
-- GPIO制御：LEDおよびボタンによる状態管理
-- 
-- カメラ入力：Raspberry Pi Camera Moduleから映像取得
+
+- カメラ入力：映像取得
 - 顔検知・録画制御：OpenCVによる顔検知および録画制御
 - ファイル保存：画像・動画データの保存
-- Webサーバー：cpp-httplibを用いたHTTP通信処理
-- LINE送信：Messaging API（Push / Webhook）による通知・遠隔操作
+- Webサーバー：cpp-httplibを用いたHTTP通信処理（Webhook受信・画像/動画配信）
+- LINE連携：Push / Reply APIによる通知・操作
 - 状態管理：atomic変数による監視状態の制御
 - GPIO制御：LEDおよびボタンによる入出力制御
 
@@ -71,6 +65,29 @@ Raspberry Piを用いて構築した、**リアルタイム監視カメラシス
 * LED（状態表示）
 * ボタン（手動操作）
 * ブレッドボード / ジャンパーワイヤ
+
+---
+
+### ■ 配線図
+
+※配線図は[Wokwi](https://wokwi.com/)で作成しており、Raspberry Pi 4Bが選択できないため
+Raspberry Pi Picoで代用しています。
+
+GPIO構成（LED・ボタン・抵抗回路）は実機と同様です。
+
+ボタンの回路は、外部プルアップを使用しています。
+Raspberry Pi 4B は内部プルアップも利用可能ですが、電気的な動作理解を深めるために外部プルアップで構成しています。
+
+<img width="728" height="476" alt="image" src="https://github.com/user-attachments/assets/c96c560f-9c31-432d-a244-a8ac2ef2eff3" />
+
+---
+
+### ■ GPIO割り当て：
+- 青LED：GPIO17
+- 赤LED：GPIO27
+- 緑ボタン：GPIO22
+- 赤ボタン：GPIO23
+
 
 ---
 
@@ -241,6 +258,14 @@ LINE Messaging APIのWebhookにより、
 
 ---
 
+### ■ アクセス制御の工夫
+
+- 監視停止中でもWebサーバー自体は稼働し続けるが、
+  状態フラグ（std::atomic）により画像・動画データのレスポンスを制御
+- これにより、外部からのアクセスを遮断しつつ、システム全体の停止を回避
+
+---
+
 ### ■ 組み込み視点の工夫
 
 * LEDで状態可視化（監視中 / 顔検知中）
@@ -339,11 +364,20 @@ cd Pi4-SecurityCamera
 ### ■ ngrok の準備
 　　※[こちら](https://qiita.com/Masanao_00/items/1d27bd52a040dd36f89f)が参考になるかもしれません。
 - ngrokアカウントを作成
+- ngrokのインストール
 - 認証トークンを設定
 
 ```bash
 ngrok config add-authtoken <YOUR_TOKEN>
 ```
+
+- ngrok URLの確認
+
+```bash
+ngrok http 8080
+```
+
+---
 
 ### ■ LINE Messaging API の設定
 　　※[こちら](https://qiita.com/Masanao_00/items/a5592c43eaed5a5baa0f)が参考になるかもしれません。
@@ -396,7 +430,7 @@ sudo systemctl stop pigpiod
 ```
 
 
-Open CV`apt`でインストールした場合、共有ディレクトリに配置されているので、`ls`で確認できます。
+OpenCV`apt`でインストールした場合、共有ディレクトリに配置されているので、`ls`で確認できます。
 ```bash
 ls /usr/share/opencv*/haarcascades/haarcascade_frontalface_default.xml
 ```
@@ -411,7 +445,7 @@ wget https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/ha
 
 ### 7.設定ファイルの作成
 
-- smple_config.txt のファイル名を config.txt に変更
+- sample_config.txt のファイル名を config.txt に変更
 - ファイル内の`=`の右側に **「チャネルのトークン、ユーザーID、ngrok URL」** を追記
 
 ```
@@ -435,28 +469,156 @@ make
 ---
 
 ### 9.実行
+- ターミナルを２つ開き、それぞれ実行します。
 ```bash
 ngrok http 8080
 sudo ./main_app
 ```
 
+---
+
 ## ◇　トラブルシューティング
 
+### ■ カメラが起動しない
 
+症状
+
+- カメラを開けませんでした と表示される
+
+対処法
+
+- カメラが正しく接続されているか確認
+- カメラが有効化されているか確認
+- sudo raspi-config
+
+→ Interface Options → Camera を有効化
+
+※参考までに
+[コマンドで撮影してみる](https://qiita.com/Masanao_00/items/0ff648260ed55dd873f4)
+
+---
+
+### ■ LINEにメッセージが送信されない
+
+症状
+
+- 何も送信されない / エラーが出る
+
+対処法
+
+- config.txt の設定を確認
+```
+CHANNEL_ACCESS_TOKEN
+USER_ID_TO_SEND
+NGROK_URL_BASE
+```
+- トークンの有効期限切れに注意
+
+※ 1チャネルの通知上限は200通/月です。
+
+---
+
+### ■ ngrokのURLでアクセスできない
+
+症状
+
+- 画像や動画が表示されない
+
+対処法
+
+- ngrok http 8080
+- 表示されたURLを config.txt に正しく設定
+- ngrokは再起動するとURLが変わるため可能性があるため注意
+
+---
+
+### ■ 顔を検知しない
+
+症状
+
+- 顔を検知したり、しなかったりする
+
+対処法
+
+- メインプログラム（main.cpp）内の503行目のパラメータを変更する
+
+  ※現在のパラメータは私の環境下での最適値となっています。
+  ※検出はグレースケールで行われるため、明るさや光の当たり方で精度はバラつきます。
+
+```main.cpp
+
+503     face_detector.detectMultiScale(gray_frame, current_faces, 1.1, 7, 0, cv::Size(30, 30));
+ //                                                              ↑~~~~~~~~~~~~~~~~~~~~~~~~~~~↑
+ //                                                             パラメータ:ここで検出精度をざっくり調整する
+
+ //  1.1: スケールファクター。画像をどれだけ縮小して検出を行うか (1.05～1.4程度)小さいほど精度が高いが処理速度が長くなる
+ //  7: minNeighbors。矩形が何回検出されたら顔とみなすか (3～6程度)高いほど誤検出は減るが、検出漏れが増える可能性がある。
+ //  0: flags。古いOpenCVとの互換性用
+ //  Size(30, 30): minSize。検出する最小の顔サイズ (小さすぎると誤検出が増える)大きくすると小さすぎるノイズを顔と検出する誤検知が防げる。
+```
+
+--- 
 
 ## ◇ 運用方法
 
+### ■ cronによる定期削除
+　　※[こちら](https://qiita.com/Masanao_00/items/40e92d12ce76632fa811)が参考になるかもしれません。
+  
+保存された画像・動画の肥大化を防ぐため、cronを用いて古いファイルを定期削除しています。
 
+- シェルスクリプトを準備
 
+スクリプトファイル（delete_old_files.sh）の`line_photo`と`line_video`のパスを環境に合わせて変更
 
+- cronを実行
+```bash
+crontab -e
+```
+末尾に追加
+```
+0 * * * * /home/pi/projects/Pi4-SecurityCamera/delete_old_files.sh
+```
+※毎時0分に実行
 
+---
 
+### ■ tmuxによる常時稼働
+　　※[こちら](https://qiita.com/Masanao_00/items/a3e3342a73910e44cc8b)が参考になるかもしれません。
 
+SSH切断後もプログラムを継続実行するため、tmuxを使用しています。
+1.セッション作成
+```bash
+tmux new -s camera
+```
 
+2.ngrok起動
+```bash
+ngrok http 8080
+```
 
+3.ウィンドウ追加
+Ctrl + b → c
 
+4.メインプログラム稼働
+```bash
+sudo ./main_app
+```
 
-//残り
-運用方法
-トラブルシューティング
+5.セッションから離脱
+Ctrl + b → d
+
+6.再接続
+```bash
+tmux attach -t camera
+```
+---
+
+## ◇ 工夫した点（まとめ）
+
+- イベント駆動設計により無駄な処理を削減
+- std::atomic による安全なスレッド間通信
+- 顔検知の間引きと解像度縮小による負荷軽減
+- Webサーバーと監視処理の分離による応答性向上
+- 監視停止中のアクセス制御による安全性向上
+
 
