@@ -6,6 +6,8 @@
 Raspberry Piを用いて構築した、**リアルタイム監視カメラシステム**です。
 顔検知をトリガーに録画・通知を行い、LINEを通じて遠隔から状況確認・操作が可能です。
 
+→ 自宅の簡易セキュリティシステムとして実運用を想定しています。
+
  **「組み込み × 画像処理 × ネットワーク」** を統合したシステムとして開発しました。
 
 ---
@@ -26,10 +28,11 @@ Raspberry Piを用いて構築した、**リアルタイム監視カメラシス
 ### ■ コンポーネント構成
 
 - カメラ入力：映像取得
-- 顔検知・録画制御：OpenCVによる顔検知および録画制御
+- 顔検知：画像処理（OpenCV）
+- 録画制御：検知イベントに基づく録画管理
 - ファイル保存：画像・動画データの保存
 - Webサーバー：cpp-httplibを用いたHTTP通信処理（Webhook受信・画像/動画配信）
-- LINE連携：Push / Reply APIによる通知・操作
+- LINE送信：Push / Reply APIによる通知・操作（WebhookイベントはWebサーバーで受信し、応答は本コンポーネントで処理）
 - 状態管理：atomic変数による監視状態の制御
 - GPIO制御：LEDおよびボタンによる入出力制御
 
@@ -76,7 +79,7 @@ Raspberry Pi Picoで代用しています。
 GPIO構成（LED・ボタン・抵抗回路）は実機と同様です。
 
 ボタンの回路は、外部プルアップを使用しています。
-Raspberry Pi 4B は内部プルアップも利用可能ですが、電気的な動作理解を深めるために外部プルアップで構成しています。
+Raspberry Pi 4Bは内部プルアップも利用可能ですが、電気的な動作理解を深めるために外部プルアップで構成しています。
 
 <img width="728" height="476" alt="image" src="https://github.com/user-attachments/assets/c96c560f-9c31-432d-a244-a8ac2ef2eff3" />
 
@@ -146,7 +149,7 @@ LINE Messaging APIのWebhookにより、
 ユーザーからのメッセージをトリガーに動作：
 
 * 撮影コマンド → 即時写真送信
-* 監視ON/OFF切り替え
+* 監視ON / OFF切り替え
 * システムの終了
 ---
 
@@ -173,7 +176,7 @@ LINE Messaging APIのWebhookにより、
 - 青LED：顔検知時に点灯（イベント発生通知）
 
 #### ■ ボタンによる操作
-- 緑ボタン：監視モードのON / OFF切り替え
+- 緑ボタン：監視モードのON/OFF切り替え
 - 赤ボタン：プログラムの終了
 
 これにより、ディスプレイがない環境でも
@@ -190,7 +193,9 @@ LINE Messaging APIのWebhookにより、
 - 顔の最終検知後、5秒で録画を停止
 - 動画URLをLINEへ送信
 
-※顔は隠しています。
+※実際のスマートフォン画面の様子です。
+※顔とURLは隠しています。
+
 <img width="300" height="550" alt="image" src="https://github.com/user-attachments/assets/53e146e1-812c-4e1c-8a3f-7e6b1366f355" />
 
 ---
@@ -205,7 +210,7 @@ LINE Messaging APIのWebhookにより、
 
 その他の文字列の場合、LINEコマンドの説明が返信されます。
 
-[動作動画](https://drive.google.com/file/d/1BBzG_szHbPuQdoSehjQq6ycj4AeqUDqQ/view?usp=sharing)
+[動作動画](https://drive.google.com/file/d/1BBzG_szHbPuQdoSehjQq6ycj4AeqUDqQ/view?usp=sharing)　※実際のスマートフォン画面およびシステム動作の様子です。
 
 ---
 
@@ -216,7 +221,7 @@ LINE Messaging APIのWebhookにより、
 - 青LED：顔検知時に点灯
 - 赤LED：監視中に点灯、終了時に5秒間点滅
 
-[動作動画](https://drive.google.com/file/d/1bfLe2dcWyjpfJEdVI0TzId5PjSbYHyfx/view?usp=sharing)
+[動作動画](https://drive.google.com/file/d/1bfLe2dcWyjpfJEdVI0TzId5PjSbYHyfx/view?usp=sharing)　※実際のスマートフォン画面およびシステム動作の様子です。
 
 ---
 
@@ -324,7 +329,7 @@ GPIOを用いてLEDおよびボタンを制御し、
 
 ### 動作環境
 本システムは以下の環境で動作確認を行っています。
-※ Raspberry Pi以外の環境では動作未確認です。
+※ Raspberry Pi 4B以外の環境では動作未確認です。
 
 - Raspberry Pi 4B
 - Raspberry Pi OS Lite (64-bit)　※Raspberry Pi OS(64-bit)でも動作確認済み
@@ -346,13 +351,13 @@ cd Pi4-SecurityCamera
 ├- delete_old_files.sh　＃古いファイルを削除するスクリプト #ユーザーに合わせて絶対パスの更新が必要
 ├- line_video/　　　　　　＃動画を保存する場所
 ├- line_photo/　　　　　　＃写真を保存する場所
-├- main.cpp　　　　　＃メインプログラム
-├- config.txt　　　 ＃設定ファイル（チャネルトークン・ユーザーID、ngrok URL）
-├- CMakeLists.txt　＃ビルド用設定ファイル
-├- httplib.h　　　　＃cpp-httplibのヘッダーファイル
+├- main.cpp　　　　　　　　＃メインプログラム
+├- config.txt　　     　 ＃設定ファイル（チャネルトークン・ユーザーID、ngrok URL）
+├- CMakeLists.txt     　＃ビルド用設定ファイル
+├- httplib.h　　　     　＃cpp-httplibのヘッダーファイル
 ├- picam/　　　　   
-├- nlohmann/　　　　＃nlohmann/jsonを使用するためのファイル
-└- build/　　　　　　＃ビルドディレクトリ
+├- nlohmann/　　　     　＃nlohmann/jsonを使用するためのファイル
+└- build/　　　　　     　＃ビルドディレクトリ
 ```
 
 ---
@@ -430,11 +435,10 @@ sudo systemctl stop pigpiod
 ```
 
 
-OpenCV`apt`でインストールした場合、共有ディレクトリに配置されているので、`ls`で確認できます。
+OpenCVを`apt`でインストールした場合、共有ディレクトリに配置されているので、次の`ls`コマンドで確認して下さい。
 ```bash
 ls /usr/share/opencv*/haarcascades/haarcascade_frontalface_default.xml
 ```
-
 
 無い場合は、ダウンロードして下さい。
 ```bash
@@ -528,7 +532,7 @@ NGROK_URL_BASE
 
 - ngrok http 8080
 - 表示されたURLを config.txt に正しく設定
-- ngrokは再起動するとURLが変わるため可能性があるため注意
+- ngrokは再起動するとURLが変わる可能性があるため注意
 
 ---
 
@@ -551,41 +555,57 @@ NGROK_URL_BASE
  //                                                              ↑~~~~~~~~~~~~~~~~~~~~~~~~~~~↑
  //                                                             パラメータ:ここで検出精度をざっくり調整する
 
- //  1.1: スケールファクター。画像をどれだけ縮小して検出を行うか (1.05～1.4程度)小さいほど精度が高いが処理速度が長くなる
+ //  1.1: スケールファクター。画像をどれだけ縮小して検出を行うか (1.05～1.4程度)小さいほど精度が高いが処理速度が長くなる。
  //  7: minNeighbors。矩形が何回検出されたら顔とみなすか (3～6程度)高いほど誤検出は減るが、検出漏れが増える可能性がある。
- //  0: flags。古いOpenCVとの互換性用
+ //  0: flags。古いOpenCVとの互換性用。変更しない。
  //  Size(30, 30): minSize。検出する最小の顔サイズ (小さすぎると誤検出が増える)大きくすると小さすぎるノイズを顔と検出する誤検知が防げる。
 ```
 
 --- 
 
+## ◇ 今後の改善
+
+### ■ セキュリティ強化
+- 認証機能の追加（トークン認証など）
+- Web公開時間の最小化（認証したLINEからのアクセス後の1分間のみWeb公開）
+
+### ■ 機能拡張
+- 顔認識（個人識別）への対応
+- 個人識別に反応する挨拶（スピーカー追加）
+- 動体検知の追加
+- 顔認識と動体検知のモード切替
+
+---
+
 ## ◇ 運用方法
 
 ### ■ cronによる定期削除
+
+保存された画像・動画の肥大化を防ぐため、cronを用いて古いファイルを定期削除しています。
 　　※[こちら](https://qiita.com/Masanao_00/items/40e92d12ce76632fa811)が参考になるかもしれません。
   
-保存された画像・動画の肥大化を防ぐため、cronを用いて古いファイルを定期削除しています。
-
 - シェルスクリプトを準備
 
-スクリプトファイル（delete_old_files.sh）の`line_photo`と`line_video`のパスを環境に合わせて変更
+　　スクリプトファイル（delete_old_files.sh）の`line_photo`と`line_video`のパスを環境に合わせて変更
 
 - cronを実行
 ```bash
 crontab -e
 ```
-末尾に追加
+　以下を末尾に追加（※毎時0分に実行）
 ```
 0 * * * * /home/pi/projects/Pi4-SecurityCamera/delete_old_files.sh
+# パスは環境に合わせて変更して下さい
 ```
-※毎時0分に実行
+
 
 ---
 
 ### ■ tmuxによる常時稼働
-　　※[こちら](https://qiita.com/Masanao_00/items/a3e3342a73910e44cc8b)が参考になるかもしれません。
 
 SSH切断後もプログラムを継続実行するため、tmuxを使用しています。
+　　※[こちら](https://qiita.com/Masanao_00/items/a3e3342a73910e44cc8b)が参考になるかもしれません。
+
 1.セッション作成
 ```bash
 tmux new -s camera
@@ -597,7 +617,8 @@ ngrok http 8080
 ```
 
 3.ウィンドウ追加
-Ctrl + b → c
+
+　　Ctrl + b → c
 
 4.メインプログラム稼働
 ```bash
@@ -605,7 +626,8 @@ sudo ./main_app
 ```
 
 5.セッションから離脱
-Ctrl + b → d
+
+　　Ctrl + b → d
 
 6.再接続
 ```bash
