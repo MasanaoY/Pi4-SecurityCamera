@@ -589,7 +589,8 @@ int main() {
 
 
         // 描画は常に実行
-        cv::Scalar color = is_recording ? cv::Scalar(0, 0, 255) : cv::Scalar(0, 255, 0); // 録画中は赤、待機中は緑
+        // 顔を赤枠で囲む
+        cv::Scalar color = cv::Scalar(0, 0, 255); // 赤
         for (const auto& face : last_faces) {
             rectangle(frame, face, color, 2);
         }
