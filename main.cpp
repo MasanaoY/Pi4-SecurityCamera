@@ -60,14 +60,14 @@ std::map<std::string, std::string>load_config(const std::string& filename) {
 
 
 // LINEに送るエンドポイント
-const std::string LINE_API_BASE_URL = "https://api.line.me";
+const std::string LINE_API_HOST = "api.line.me";
 const std::string LINE_PUSH_MESSAGE_ENDPOINT = "/v2/bot/message/push";
 const std::string LINE_REPLY_MESSAGE_ENDPOINT = "/v2/bot/message/reply";
 
 // LINE API 送信関数
 // LINE APIにHTTP POSTリクエストを送信する関数
 bool sendLineApiRequest(const std::string& endpoint, const std::string& body, const std::map<std::string, std::string>& config) {
-    httplib::Client cli(LINE_API_BASE_URL.c_str()); // Clientオブジェクト作成、ClientはコンストラクタでURLをC言語文字列として受け取るため、.c_str()でURLをC言語文字列に変換
+    httplib::SSLClient cli(LINE_API_HOST.c_str()); // Clientオブジェクト作成、ClientはコンストラクタでURLをC言語文字列として受け取るため、.c_str()でURLをC言語文字列に変換
 
     // ネットワーク不安定な場合のフリーズ防止
     cli.set_connection_timeout(std::chrono::seconds(5)); // 接続タイムアウト (5秒)
@@ -162,7 +162,7 @@ bool sendReplyMessage(const std::string& reply_token, const std::string& text, c
 
 httplib::Server svr; // グローバルで定義(svr.stop()をメインループ内で呼ぶため)
 
-//Webサーバーを起動し、画像リクエストを処理する関数
+//Webサーバーを起動し、リクエストを処理する関数
 void start_web_server(int port, const std::map<std::string, std::string>& config) {
 
     // -画像配信のエンドポイント
