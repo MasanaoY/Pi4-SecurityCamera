@@ -162,7 +162,7 @@ bool sendReplyMessage(const std::string& reply_token, const std::string& text, c
 
 httplib::Server svr; // グローバルで定義(svr.stop()をメインループ内で呼ぶため)
 
-//Webサーバーを起動し、画像リクエストを処理する関数
+//Webサーバーを起動し、リクエストを処理する関数
 void start_web_server(int port, const std::map<std::string, std::string>& config) {
 
     // -画像配信のエンドポイント
