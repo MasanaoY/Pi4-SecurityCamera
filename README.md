@@ -401,7 +401,7 @@ ngrok http 8080
 ---
 
 ### 4.必要パッケージのインストール
-　　※[こちら](https://qiita.com/Masanao_00/items/71934d368d0ad36cbc51)が参考になるかもしれません。
+　　※[こちら](https://qiita.com/Masanao_00/items/71934d368d0ad36cbc51)が参考になるかもしれません。（pigpioがインストールできない場合もこちら）
 
 ```bash
 sudo apt update
@@ -409,6 +409,7 @@ sudo apt install -y build-essential cmake pkg-config
 sudo apt install libssl-dev
 sudo apt install libopencv-dev python3-opencv
 sudo apt install pigpio
+sudo apt install -y gstreamer1.0-tools gstreamer1.0-libcamera libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
 ```
 
 ---
