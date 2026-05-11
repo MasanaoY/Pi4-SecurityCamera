@@ -7,4 +7,5 @@ CHANNEL_ACCESS_TOKEN=
 USER_ID_TO_SEND=
 
 # ngrokで取得したホスト名
+# https://は書かない
 NGROK_URL_BASE=
