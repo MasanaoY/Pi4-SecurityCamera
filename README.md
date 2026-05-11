@@ -405,7 +405,7 @@ ngrok http 8080
 
 ```bash
 sudo apt update
-sudo apt install -y build-essential cmake pkg-config git
+sudo apt install -y build-essential cmake pkg-config
 sudo apt install libssl-dev
 sudo apt install libopencv-dev python3-opencv
 sudo apt install pigpio
