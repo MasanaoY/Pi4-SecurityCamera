@@ -451,7 +451,7 @@ wget https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/ha
 
 - sample_config.txt のファイル名を config.txt に変更
 - ファイル内の`=`の右側に **「チャネルのトークン、ユーザーID、ngrok URL」** を追記
-
+　※ngrokのURLは「https://」の後の部分のみを記入
 ```
 - sample_config.txt を config.txt にリネーム
 
@@ -461,6 +461,8 @@ CHANNEL_ACCESS_TOKEN=xxxx
 USER_ID_TO_SEND=xxxx
 NGROK_URL_BASE=xxxx
 ```
+
+
 ---
 
 ### 8.ビルド（Make）
